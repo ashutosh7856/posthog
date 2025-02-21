@@ -90,3 +90,6 @@ jobs:
                   cache-to: type=inline
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
+
+            - name: Run frontend
+              run: pnpm start
