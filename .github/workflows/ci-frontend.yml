@@ -161,3 +161,36 @@ jobs:
               if: needs.changes.outputs.frontend == 'true'
               env:
                   NODE_OPTIONS: --max-old-space-size=6144
+
+    run-frontend:
+        runs-on: ubuntu-24.04
+        needs: changes
+        name: Run Frontend
+
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 18.12.1
+
+            - name: Get pnpm cache directory path
+              id: pnpm-cache-dir
+              run: echo "PNPM_STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+            - uses: actions/cache@v4
+              id: pnpm-cache
+              with:
+                  path: ${{ steps.pnpm-cache-dir.outputs.PNPM_STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-cypress-${{ hashFiles('pnpm-lock.yaml') }}
+                  restore-keys: ${{ runner.os }}-pnpm-cypress-
+
+            - name: Install package.json dependencies with pnpm
+              run: pnpm --filter=@posthog/frontend install --frozen-lockfile
+
+            - name: Run frontend
+              run: pnpm start
